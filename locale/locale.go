@@ -1,4 +1,4 @@
-package i18n
+package locale
 
 // Locale contains all information about a locale.
 type Locale struct {
@@ -51,4 +51,8 @@ type Locale struct {
 	NumberGroupSeparator string
 	// NumberNegativePattern is the pattern used for negative currency values.
 	NumberNegativePattern string
+}
+
+func Get(code string) *Locale {
+	return locales[code]
 }

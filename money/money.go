@@ -2,7 +2,7 @@
 // See: https://github.com/Confunctionist/finance
 //
 // Some changes by Oliver Eilhard
-package i18n
+package money
 
 import (
 	"bytes"
@@ -10,6 +10,8 @@ import (
 	"fmt"
 	"math"
 	"strings"
+	"github.com/hailocab/i18n-go/currency"
+	"github.com/hailocab/i18n-go/locale"
 )
 
 type Money struct {
@@ -35,22 +37,9 @@ const (
 	MAXDEC = 18
 )
 
-// Returns the absolute value of Money.
-func (m *Money) Abs() *Money {
-	if m.M < 0 {
-		m.Neg()
-	}
-	return m
-}
-
-// Adds two money types.
-func (m *Money) Add(n *Money) *Money {
-	r := m.M + n.M
-	if (r^m.M)&(r^n.M) < 0 {
-		panic(ErrMoneyOverflow)
-	}
-	m.M = r
-	return m
+// New returns a new Money that can be used for money arithmetic.
+func New(m int64, c string) *Money {
+	return &Money{m, c}
 }
 
 // Resets the package-wide decimal place (default is 2 decimal places).
@@ -71,6 +60,40 @@ func DecimalChange(d int) {
 	DPf = float64(newDecimal)
 	DP = int64(newDecimal)
 	return
+}
+
+// Rounds int64 remainder rounded half towards plus infinity
+// trunc = the remainder of the float64 calc
+// r     = the result of the int64 cal
+func Rnd(r int64, trunc float64) int64 {
+	if trunc > 0 {
+		if trunc >= Round {
+			r++
+		}
+	} else {
+		if trunc < Roundn {
+			r--
+		}
+	}
+	return r
+}
+
+// Returns the absolute value of Money.
+func (m *Money) Abs() *Money {
+	if m.M < 0 {
+		m.Neg()
+	}
+	return m
+}
+
+// Adds two money types.
+func (m *Money) Add(n *Money) *Money {
+	r := m.M + n.M
+	if (r^m.M)&(r^n.M) < 0 {
+		panic(ErrMoneyOverflow)
+	}
+	m.M = r
+	return m
 }
 
 // Divides one Money type from another.
@@ -108,22 +131,6 @@ func (m *Money) Neg() *Money {
 		m.M *= -1
 	}
 	return m
-}
-
-// Rounds int64 remainder rounded half towards plus infinity
-// trunc = the remainder of the float64 calc
-// r     = the result of the int64 cal
-func Rnd(r int64, trunc float64) int64 {
-	if trunc > 0 {
-		if trunc >= Round {
-			r++
-		}
-	} else {
-		if trunc < Roundn {
-			r--
-		}
-	}
-	return r
 }
 
 // Sets the Money field M.
@@ -170,9 +177,9 @@ func (m *Money) String() string {
 	return fmt.Sprintf("-%d.%02d %s", m.Abs().Value()/DP, m.Abs().Value()%DP, m.C)
 }
 
-func (m *Money) Format(locale string) string {
-	l, found := Locales[locale]
-	if !found {
+func (m *Money) Format(loc string) string {
+	l := locale.Get(loc)
+	if l == nil {
 		// If we don't have any information about the currency format,
 		// we'll try our best to display something useful.
 		return m.String()
@@ -180,8 +187,8 @@ func (m *Money) Format(locale string) string {
 
 	// DP is a measure for decimals: 2 decimal digits => dp = 10^2
 	currencySymbol := m.C
-	curr, found := Currencies[m.C]
-	if found {
+	curr := currency.Get(m.C)
+	if curr != nil {
 		currencySymbol = curr.Symbol
 	}
 

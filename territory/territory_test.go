@@ -1,4 +1,4 @@
-package i18n
+package territory
 
 import (
 	"testing"
@@ -21,7 +21,7 @@ func TestTerritories(t *testing.T) {
 	}
 
 	for i, f := range tests {
-		c, found := Territories[f.code]
+		c, found := territories[f.code]
 		if found != f.found {
 			t.Fatalf("%d. expected territory %s found flag to be %v, got %v", i, f.code, f.found, found)
 		}

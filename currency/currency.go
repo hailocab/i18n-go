@@ -1,4 +1,4 @@
-package i18n
+package currency
 
 // Currency represets all details about a currency.
 type Currency struct {
@@ -6,4 +6,8 @@ type Currency struct {
 	Code string
 	// Symbol is the common symbol used for the currency, e.g. € for Euro.
 	Symbol string
+}
+
+func Get(code string) *Currency {
+	return currencies[code]
 }

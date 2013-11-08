@@ -1,4 +1,4 @@
-package i18n
+package currency
 
 import (
 	"testing"
@@ -17,7 +17,7 @@ func TestCurrencies(t *testing.T) {
 	}
 
 	for i, f := range tests {
-		c, found := Currencies[f.code]
+		c, found := currencies[f.code]
 		if found != f.found {
 			t.Fatalf("%d. expected currency code %v found flag to be %v, got %v", i, f.code, f.found, found)
 		}

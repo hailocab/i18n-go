@@ -1,4 +1,4 @@
-package i18n
+package language
 
 // Language represents all information about a language.
 type Language struct {
@@ -8,4 +8,8 @@ type Language struct {
 	NativeName string
 	// EnglishName is the name of the language in English.
 	EnglishName string
+}
+
+func Get(code string) *Language {
+	return languages[code]
 }

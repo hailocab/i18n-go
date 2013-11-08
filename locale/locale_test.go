@@ -1,4 +1,4 @@
-package i18n
+package locale
 
 import (
 	"testing"
@@ -28,7 +28,7 @@ func TestLocales(t *testing.T) {
 	}
 
 	for i, f := range tests {
-		loc, found := Locales[f.code]
+		loc, found := locales[f.code]
 		if found != f.found {
 			t.Fatalf("%d. expected %v found flag to be %v, got %v", i, f.code, f.found, found)
 		}
