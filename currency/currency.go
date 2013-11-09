@@ -11,3 +11,7 @@ type Currency struct {
 func Get(code string) *Currency {
 	return currencies[code]
 }
+
+func Currencies() map[string]*Currency {
+	return currencies
+}

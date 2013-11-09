@@ -56,3 +56,7 @@ type Locale struct {
 func Get(code string) *Locale {
 	return locales[code]
 }
+
+func Locales() map[string]*Locale {
+	return locales
+}

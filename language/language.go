@@ -13,3 +13,7 @@ type Language struct {
 func Get(code string) *Language {
 	return languages[code]
 }
+
+func Languages() map[string]*Language {
+	return languages
+}

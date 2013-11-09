@@ -13,3 +13,7 @@ type Territory struct {
 func Get(code string) *Territory {
 	return territories[code]
 }
+
+func Territories() map[string]*Territory {
+	return territories
+}
