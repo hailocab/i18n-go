@@ -8,10 +8,10 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
-	"math"
-	"strings"
 	"github.com/hailocab/i18n-go/currency"
 	"github.com/hailocab/i18n-go/locale"
+	"math"
+	"strings"
 )
 
 type Money struct {
@@ -136,6 +136,12 @@ func (m *Money) Neg() *Money {
 // Sets the Money field M.
 func (m *Money) Set(x int64) *Money {
 	m.M = x
+	return m
+}
+
+// Sets the currency of Money.
+func (m *Money) SetCurrency(currency string) *Money {
+	m.C = currency
 	return m
 }
 
