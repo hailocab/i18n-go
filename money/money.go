@@ -37,28 +37,55 @@ const (
 	MAXDEC = 18
 )
 
-// New returns a new Money that can be used for money arithmetic.
-func New(m int64, c string) *Money {
-	return &Money{m, c}
-}
-
-// Resets the package-wide decimal place (default is 2 decimal places).
-func DecimalChange(d int) {
+func newDecimal(d int) int {
 	if d < 0 {
 		panic(ErrMoneyDivideByZero)
 	}
 	if d > MAXDEC {
 		panic(ErrMoneyDecimalPlacesTooLarge)
 	}
-	var newDecimal int
+	var newDec int
 	if d > 0 {
-		newDecimal++
+		newDec++
 		for i := 0; i < d; i++ {
-			newDecimal *= 10
+			newDec *= 10
 		}
 	}
-	DPf = float64(newDecimal)
-	DP = int64(newDecimal)
+	return newDec
+}
+
+// New returns a new Money that can be used for money arithmetic.
+func New(m int64, c string) *Money {
+	return &Money{m, c}
+}
+
+// Resets the package-wide decimal place (default is 2 decimal places).
+func SetDecimal(d int) {
+	decimal := newDecimal(d)
+	DPf = float64(decimal)
+	DP = int64(decimal)
+	return
+}
+
+// Resets the package-wide decimal place by currency.
+func SetDecimalByCurrency(cur string) {
+	c := currency.Get(cur)
+	if c != nil {
+		decimal := newDecimal(c.DecimalDigits)
+		DPf = float64(decimal)
+		DP = int64(decimal)
+	}
+	return
+}
+
+// Resets the package-wide decimal place by locale.
+func SetDecimalByLocale(lce string) {
+	l := locale.Get(lce)
+	if l != nil {
+		decimal := newDecimal(l.CurrencyDecimalDigits)
+		DPf = float64(decimal)
+		DP = int64(decimal)
+	}
 	return
 }
 
@@ -142,6 +169,16 @@ func (m *Money) Set(x int64) *Money {
 // Sets the currency of Money.
 func (m *Money) SetCurrency(currency string) *Money {
 	m.C = currency
+	return m
+}
+
+// Sets the currency of Money by locale.
+func (m *Money) SetCurrencyByLocale(lce string) *Money {
+	l := locale.Get(lce)
+	if l != nil {
+		m.C = l.CurrencyCode
+	}
+
 	return m
 }
 
