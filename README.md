@@ -1,16 +1,55 @@
-# Simple internationalization (i18n) for Google Go
+# i18n-go
 
-This is a very simple approach to internationalization for Google Go.
+This is an internationalization library forked from [github.com/olivere/i18n-go](https://github.com/olivere/i18n-go)
 
-## Status
+## Example Usage
+	package main
 
-This is a work in progress. Use at your own risk.
+	import (
+		"fmt"
+		"github.com/hailocab/i18n-go/money"
+	)
+	
+	func main() {
+		// Initialise new Money
+		m := money.New(1050, "USD")
+	
+		// Get the value of Money
+		fmt.Println(m.Value()) // 1050
+	
+		// Get the float64 super unit value
+		fmt.Println(m.Get()) // 10.5
+	
+		// Get a rounded int64 value
+		fmt.Println(m.Gett()) // 10
+	
+		// String value
+		fmt.Println(m.String()) // 10.50 USD
+	
+		// Format
+		fmt.Println(m.Format("en_US")) // $10.50
+	
+		// More money
+		n := money.New(1000, "USD")
+	
+		// Add
+		m.Add(n) // 2050
 
-## Credits
-
-* [Jad Dittmar](https://github.com/Confunctionist/finance) for the Money class.
-
-## License
-
-MIT LICENSE. See [LICENSE](http://olivere.mit-license.org/) or the
-LICENSE file in the repository.
+		// Subtract
+		m.Sub(n) // 1050
+	
+		// Multiply
+		m.Mul(n) // 10500
+	
+		// Chain operations
+		money.New(1050, "USD").Add(n).Sub(money.New(200, "USD")).Get() // 18.5
+	
+		// Set the decimal place
+		money.SetDecimal(4)
+	
+		// Set decimal by currency
+		money.SetDecimalByCurrency("USD")
+	
+		// Set decimal by locale
+		money.SetDecimalByLocale("en_US")
+	}
