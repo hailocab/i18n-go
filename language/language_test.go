@@ -1,4 +1,4 @@
-package i18n
+package language
 
 import (
 	"testing"
@@ -19,7 +19,7 @@ func TestLanguages(t *testing.T) {
 	}
 
 	for i, f := range tests {
-		l, found := Languages[f.code]
+		l, found := languages[f.code]
 		if found != f.found {
 			t.Fatalf("%d. expected language %s found flag to be %v, got %v", i, f.code, f.found, found)
 		}

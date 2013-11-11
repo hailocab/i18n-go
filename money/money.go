@@ -2,12 +2,14 @@
 // See: https://github.com/Confunctionist/finance
 //
 // Some changes by Oliver Eilhard
-package i18n
+package money
 
 import (
 	"bytes"
 	"errors"
 	"fmt"
+	"github.com/hailocab/i18n-go/currency"
+	"github.com/hailocab/i18n-go/locale"
 	"math"
 	"strings"
 )
@@ -35,6 +37,74 @@ const (
 	MAXDEC = 18
 )
 
+func newDecimal(d int) int {
+	if d < 0 {
+		panic(ErrMoneyDivideByZero)
+	}
+	if d > MAXDEC {
+		panic(ErrMoneyDecimalPlacesTooLarge)
+	}
+	var newDec int
+	if d > 0 {
+		newDec++
+		for i := 0; i < d; i++ {
+			newDec *= 10
+		}
+	}
+	return newDec
+}
+
+// New returns a new Money that can be used for money arithmetic.
+func New(m int64, c string) *Money {
+	return &Money{m, c}
+}
+
+// Resets the package-wide decimal place (default is 2 decimal places).
+func SetDecimal(d int) {
+	decimal := newDecimal(d)
+	DPf = float64(decimal)
+	DP = int64(decimal)
+	return
+}
+
+// Resets the package-wide decimal place by currency.
+func SetDecimalByCurrency(cur string) {
+	c := currency.Get(cur)
+	if c != nil {
+		decimal := newDecimal(c.DecimalDigits)
+		DPf = float64(decimal)
+		DP = int64(decimal)
+	}
+	return
+}
+
+// Resets the package-wide decimal place by locale.
+func SetDecimalByLocale(lce string) {
+	l := locale.Get(lce)
+	if l != nil {
+		decimal := newDecimal(l.CurrencyDecimalDigits)
+		DPf = float64(decimal)
+		DP = int64(decimal)
+	}
+	return
+}
+
+// Rounds int64 remainder rounded half towards plus infinity
+// trunc = the remainder of the float64 calc
+// r     = the result of the int64 cal
+func Rnd(r int64, trunc float64) int64 {
+	if trunc > 0 {
+		if trunc >= Round {
+			r++
+		}
+	} else {
+		if trunc < Roundn {
+			r--
+		}
+	}
+	return r
+}
+
 // Returns the absolute value of Money.
 func (m *Money) Abs() *Money {
 	if m.M < 0 {
@@ -51,26 +121,6 @@ func (m *Money) Add(n *Money) *Money {
 	}
 	m.M = r
 	return m
-}
-
-// Resets the package-wide decimal place (default is 2 decimal places).
-func DecimalChange(d int) {
-	if d < 0 {
-		panic(ErrMoneyDivideByZero)
-	}
-	if d > MAXDEC {
-		panic(ErrMoneyDecimalPlacesTooLarge)
-	}
-	var newDecimal int
-	if d > 0 {
-		newDecimal++
-		for i := 0; i < d; i++ {
-			newDecimal *= 10
-		}
-	}
-	DPf = float64(newDecimal)
-	DP = int64(newDecimal)
-	return
 }
 
 // Divides one Money type from another.
@@ -110,25 +160,25 @@ func (m *Money) Neg() *Money {
 	return m
 }
 
-// Rounds int64 remainder rounded half towards plus infinity
-// trunc = the remainder of the float64 calc
-// r     = the result of the int64 cal
-func Rnd(r int64, trunc float64) int64 {
-	if trunc > 0 {
-		if trunc >= Round {
-			r++
-		}
-	} else {
-		if trunc < Roundn {
-			r--
-		}
-	}
-	return r
-}
-
 // Sets the Money field M.
 func (m *Money) Set(x int64) *Money {
 	m.M = x
+	return m
+}
+
+// Sets the currency of Money.
+func (m *Money) SetCurrency(currency string) *Money {
+	m.C = currency
+	return m
+}
+
+// Sets the currency of Money by locale.
+func (m *Money) SetCurrencyByLocale(lce string) *Money {
+	l := locale.Get(lce)
+	if l != nil {
+		m.C = l.CurrencyCode
+	}
+
 	return m
 }
 
@@ -170,9 +220,9 @@ func (m *Money) String() string {
 	return fmt.Sprintf("-%d.%02d %s", m.Abs().Value()/DP, m.Abs().Value()%DP, m.C)
 }
 
-func (m *Money) Format(locale string) string {
-	l, found := Locales[locale]
-	if !found {
+func (m *Money) Format(loc string) string {
+	l := locale.Get(loc)
+	if l == nil {
 		// If we don't have any information about the currency format,
 		// we'll try our best to display something useful.
 		return m.String()
@@ -180,8 +230,8 @@ func (m *Money) Format(locale string) string {
 
 	// DP is a measure for decimals: 2 decimal digits => dp = 10^2
 	currencySymbol := m.C
-	curr, found := Currencies[m.C]
-	if found {
+	curr := currency.Get(m.C)
+	if curr != nil {
 		currencySymbol = curr.Symbol
 	}
 
