@@ -239,14 +239,12 @@ func (m *Money) Format(loc string) string {
 	dp := int64(math.Pow10(l.CurrencyDecimalDigits))
 
 	// Group DP is a measure for grouping: 3 decimal digits => groupDp = 10^3
-	var groupDp int64
-	if len(l.CurrencyGroupSizes) == 0 {
+	groupSize := 3
+	if len(l.CurrencyGroupSizes) >= 1 {
 		// BUG(oe): Handle currency group size
-		groupDp = int64(math.Pow10(3))
-	} else if len(l.CurrencyGroupSizes) >= 1 {
-		// BUG(oe): Handle currency group size
-		groupDp = int64(math.Pow10(l.CurrencyGroupSizes[0]))
+		groupSize = l.CurrencyGroupSizes[0]
 	}
+	groupDp := int64(math.Pow10(groupSize))
 
 	// We use absolute values (as int64) from here on, because the
 	// negative sign is part of the currency format pattern.
@@ -267,8 +265,16 @@ func (m *Money) Format(loc string) string {
 
 	// Perform grouping operation of the whole number
 	groups := make([]string, 0)
+	inner_group_fmt := "%0" + fmt.Sprintf("%d", groupSize) + "d"
 	for {
-		groups = append(groups, fmt.Sprintf("%d", wholeVal%groupDp))
+		group := wholeVal%groupDp
+		var s string
+		if wholeVal < groupDp {
+			s = fmt.Sprintf("%d", group)
+		} else {
+			s = fmt.Sprintf(inner_group_fmt, group)
+		}
+		groups = append(groups, s)
 		wholeVal /= groupDp
 		if wholeVal == 0 {
 			break

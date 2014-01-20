@@ -261,6 +261,11 @@ func TestMoneyFormat(t *testing.T) {
 		{&Money{-1234567890, "SEK"}, "de_DE", "-12.345.678,90 kr"},
 		{&Money{1234567890, "SEK"}, "de_CH", "kr 12'345'678.90"},
 		{&Money{-1234567890, "SEK"}, "de_CH", "kr-12'345'678.90"},
+
+		{&Money{200000, "ZAR"}, "en_ZA", "R 2 000,00"},
+		{&Money{120000, "ZAR"}, "en_ZA", "R 1 200,00"},
+		{&Money{90000, "ZAR"}, "en_ZA", "R 900,00"},
+		{&Money{90001, "ZAR"}, "en_ZA", "R 900,01"},
 	}
 
 	for _, f := range fixtures {
