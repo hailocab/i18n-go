@@ -221,18 +221,21 @@ func (m *Money) String() string {
 }
 
 func (m *Money) Format(loc string) string {
+	// DP is a measure for decimals: 2 decimal digits => dp = 10^2
+	currencySymbol := m.C
+	if curr := currency.Get(m.C); curr != nil {
+		currencySymbol = curr.Symbol
+	}
+
+	return m.format(loc, currencySymbol)
+}
+
+func (m *Money) format(loc, symbol string) string {
 	l := locale.Get(loc)
 	if l == nil {
 		// If we don't have any information about the currency format,
 		// we'll try our best to display something useful.
 		return m.String()
-	}
-
-	// DP is a measure for decimals: 2 decimal digits => dp = 10^2
-	currencySymbol := m.C
-	curr := currency.Get(m.C)
-	if curr != nil {
-		currencySymbol = curr.Symbol
 	}
 
 	// DP is a measure for decimals: 2 decimal digits => dp = 10^2
@@ -306,10 +309,14 @@ func (m *Money) Format(loc string) string {
 		formatted = wholeBuf.String()
 	}
 
-	output := strings.Replace(pattern, "$", currencySymbol, -1)
+	output := strings.Replace(pattern, "$", symbol, -1)
 	output = strings.Replace(output, "n", formatted, -1)
 
 	return output
+}
+
+func (m *Money) FormatNoSymbol(loc string) string {
+	return strings.TrimSpace(m.format(loc, ""))
 }
 
 // Subtracts one Money type from another.
