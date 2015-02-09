@@ -265,14 +265,14 @@ func (m *Money) Format(loc string) string {
 
 	// Perform grouping operation of the whole number
 	groups := make([]string, 0)
-	inner_group_fmt := "%0" + fmt.Sprintf("%d", groupSize) + "d"
+	innerGroupFmt := "%0" + fmt.Sprintf("%d", groupSize) + "d"
 	for {
-		group := wholeVal%groupDp
+		group := wholeVal % groupDp
 		var s string
 		if wholeVal < groupDp {
 			s = fmt.Sprintf("%d", group)
 		} else {
-			s = fmt.Sprintf(inner_group_fmt, group)
+			s = fmt.Sprintf(innerGroupFmt, group)
 		}
 		groups = append(groups, s)
 		wholeVal /= groupDp
