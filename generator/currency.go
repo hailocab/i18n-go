@@ -11,7 +11,7 @@ import (
 func Currency() {
 	currencies := make(map[string]*currency.Currency)
 	for _, v := range locale.Locales() {
-		c := &Currency{
+		c := &currency.Currency{
 			Code:             v.CurrencyCode,
 			Symbol:           v.CurrencySymbol,
 			DecimalDigits:    v.CurrencyDecimalDigits,
