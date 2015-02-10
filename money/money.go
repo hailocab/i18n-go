@@ -213,11 +213,16 @@ func (m *Money) Sign() int {
 
 // String for money type representation in basic monetary unit (DOLLARS CENTS).
 func (m *Money) String() string {
+	return m.toString(m.C)
+}
+
+// toString returns basic representation XX.XX CUR
+func (m *Money) toString(curr string) string {
 	if m.Sign() > 0 {
-		return fmt.Sprintf("%d.%02d %s", m.Value()/DP, m.Value()%DP, m.C)
+		return strings.TrimSpace(fmt.Sprintf("%d.%02d %s", m.Value()/DP, m.Value()%DP, curr))
 	}
 	// Negative value
-	return fmt.Sprintf("-%d.%02d %s", m.Abs().Value()/DP, m.Abs().Value()%DP, m.C)
+	return strings.TrimSpace(fmt.Sprintf("-%d.%02d %s", m.Abs().Value()/DP, m.Abs().Value()%DP, curr))
 }
 
 func (m *Money) Format(loc string) string {
@@ -235,6 +240,9 @@ func (m *Money) format(loc, symbol string) string {
 	if l == nil {
 		// If we don't have any information about the currency format,
 		// we'll try our best to display something useful.
+		if len(symbol) == 0 {
+			return m.toString("") // force to no symbol
+		}
 		return m.String()
 	}
 
@@ -308,7 +316,6 @@ func (m *Money) format(loc, symbol string) string {
 	} else {
 		formatted = wholeBuf.String()
 	}
-
 	output := strings.Replace(pattern, "$", symbol, -1)
 	output = strings.Replace(output, "n", formatted, -1)
 
@@ -316,7 +323,8 @@ func (m *Money) format(loc, symbol string) string {
 }
 
 func (m *Money) FormatNoSymbol(loc string) string {
-	return strings.TrimSpace(m.format(loc, ""))
+	ret := strings.TrimSpace(m.format(loc, ""))
+	return strings.Replace(ret, "- ", "-", -1) // remove any funny whitespace due to -ve pattern
 }
 
 // Subtracts one Money type from another.
