@@ -213,26 +213,37 @@ func (m *Money) Sign() int {
 
 // String for money type representation in basic monetary unit (DOLLARS CENTS).
 func (m *Money) String() string {
+	return m.toString(m.C)
+}
+
+// toString returns basic representation XX.XX CUR
+func (m *Money) toString(curr string) string {
 	if m.Sign() > 0 {
-		return fmt.Sprintf("%d.%02d %s", m.Value()/DP, m.Value()%DP, m.C)
+		return strings.TrimSpace(fmt.Sprintf("%d.%02d %s", m.Value()/DP, m.Value()%DP, curr))
 	}
 	// Negative value
-	return fmt.Sprintf("-%d.%02d %s", m.Abs().Value()/DP, m.Abs().Value()%DP, m.C)
+	return strings.TrimSpace(fmt.Sprintf("-%d.%02d %s", m.Abs().Value()/DP, m.Abs().Value()%DP, curr))
 }
 
 func (m *Money) Format(loc string) string {
+	// DP is a measure for decimals: 2 decimal digits => dp = 10^2
+	currencySymbol := m.C
+	if curr := currency.Get(m.C); curr != nil {
+		currencySymbol = curr.Symbol
+	}
+
+	return m.format(loc, currencySymbol)
+}
+
+func (m *Money) format(loc, symbol string) string {
 	l := locale.Get(loc)
 	if l == nil {
 		// If we don't have any information about the currency format,
 		// we'll try our best to display something useful.
+		if len(symbol) == 0 {
+			return m.toString("") // force to no symbol
+		}
 		return m.String()
-	}
-
-	// DP is a measure for decimals: 2 decimal digits => dp = 10^2
-	currencySymbol := m.C
-	curr := currency.Get(m.C)
-	if curr != nil {
-		currencySymbol = curr.Symbol
 	}
 
 	// DP is a measure for decimals: 2 decimal digits => dp = 10^2
@@ -305,11 +316,15 @@ func (m *Money) Format(loc string) string {
 	} else {
 		formatted = wholeBuf.String()
 	}
-
-	output := strings.Replace(pattern, "$", currencySymbol, -1)
+	output := strings.Replace(pattern, "$", symbol, -1)
 	output = strings.Replace(output, "n", formatted, -1)
 
 	return output
+}
+
+func (m *Money) FormatNoSymbol(loc string) string {
+	ret := strings.TrimSpace(m.format(loc, ""))
+	return strings.Replace(ret, "- ", "-", -1) // remove any funny whitespace due to -ve pattern
 }
 
 // Subtracts one Money type from another.
