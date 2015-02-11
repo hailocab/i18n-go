@@ -235,7 +235,7 @@ func (m *Money) Format(loc string) string {
 	return m.format(loc, currencySymbol)
 }
 
-func (m *Money) format(loc, symbol string) string {
+func (m *Money) format(loc string, symbol string) string {
 	l := locale.Get(loc)
 	if l == nil {
 		// If we don't have any information about the currency format,
@@ -245,9 +245,14 @@ func (m *Money) format(loc, symbol string) string {
 		}
 		return m.String()
 	}
+	decimalDigits := l.CurrencyDecimalDigits
+	if curr := currency.Get(m.C); curr != nil {
+		// prefer currency decimal digits due to major/minor currency stuff; locale is an inaccurate fallback
+		decimalDigits = curr.DecimalDigits
+	}
 
 	// DP is a measure for decimals: 2 decimal digits => dp = 10^2
-	dp := int64(math.Pow10(l.CurrencyDecimalDigits))
+	dp := int64(math.Pow10(decimalDigits))
 
 	// Group DP is a measure for grouping: 3 decimal digits => groupDp = 10^3
 	groupSize := 3
@@ -268,7 +273,7 @@ func (m *Money) format(loc, symbol string) string {
 
 	// The unformatted string (without grouping and with a decimal sep of ".")
 	var unformatted string
-	if l.CurrencyDecimalDigits > 0 {
+	if decimalDigits > 0 {
 		unformatted = fmt.Sprintf("%d.%0"+fmt.Sprintf("%d", l.CurrencyDecimalDigits)+"d", wholeVal, decVal)
 	} else {
 		unformatted = fmt.Sprintf("%d", wholeVal)
