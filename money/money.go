@@ -5,13 +5,11 @@
 package money
 
 import (
-	"bytes"
 	"errors"
-	"fmt"
+	"strings"
+
 	"github.com/hailocab/i18n-go/currency"
 	"github.com/hailocab/i18n-go/locale"
-	"math"
-	"strings"
 )
 
 type Money struct {
@@ -218,112 +216,19 @@ func (m *Money) String() string {
 
 // toString returns basic representation XX.XX CUR
 func (m *Money) toString(curr string) string {
-	if m.Sign() > 0 {
-		return strings.TrimSpace(fmt.Sprintf("%d.%02d %s", m.Value()/DP, m.Value()%DP, curr))
-	}
-	// Negative value
-	return strings.TrimSpace(fmt.Sprintf("-%d.%02d %s", m.Abs().Value()/DP, m.Abs().Value()%DP, curr))
+	f := GetFormatter("", curr)
+	return f.Format(m.Value())
 }
 
 func (m *Money) Format(loc string) string {
-	// DP is a measure for decimals: 2 decimal digits => dp = 10^2
-	currencySymbol := m.C
-	if curr := currency.Get(m.C); curr != nil {
-		currencySymbol = curr.Symbol
-	}
-
-	return m.format(loc, currencySymbol)
-}
-
-func (m *Money) format(loc, symbol string) string {
-	l := locale.Get(loc)
-	if l == nil {
-		// If we don't have any information about the currency format,
-		// we'll try our best to display something useful.
-		if len(symbol) == 0 {
-			return m.toString("") // force to no symbol
-		}
-		return m.String()
-	}
-
-	// DP is a measure for decimals: 2 decimal digits => dp = 10^2
-	dp := int64(math.Pow10(l.CurrencyDecimalDigits))
-
-	// Group DP is a measure for grouping: 3 decimal digits => groupDp = 10^3
-	groupSize := 3
-	if len(l.CurrencyGroupSizes) >= 1 {
-		// BUG(oe): Handle currency group size
-		groupSize = l.CurrencyGroupSizes[0]
-	}
-	groupDp := int64(math.Pow10(groupSize))
-
-	// We use absolute values (as int64) from here on, because the
-	// negative sign is part of the currency format pattern.
-	absVal := m.Value()
-	if m.Sign() < 0 {
-		absVal = -absVal
-	}
-	wholeVal := absVal / dp
-	decVal := absVal % dp
-
-	// The unformatted string (without grouping and with a decimal sep of ".")
-	var unformatted string
-	if l.CurrencyDecimalDigits > 0 {
-		unformatted = fmt.Sprintf("%d.%0"+fmt.Sprintf("%d", l.CurrencyDecimalDigits)+"d", wholeVal, decVal)
-	} else {
-		unformatted = fmt.Sprintf("%d", wholeVal)
-	}
-
-	// Perform grouping operation of the whole number
-	groups := make([]string, 0)
-	innerGroupFmt := "%0" + fmt.Sprintf("%d", groupSize) + "d"
-	for {
-		group := wholeVal % groupDp
-		var s string
-		if wholeVal < groupDp {
-			s = fmt.Sprintf("%d", group)
-		} else {
-			s = fmt.Sprintf(innerGroupFmt, group)
-		}
-		groups = append(groups, s)
-		wholeVal /= groupDp
-		if wholeVal == 0 {
-			break
-		}
-	}
-	var wholeBuf bytes.Buffer
-	for i, _ := range groups {
-		if i > 0 {
-			wholeBuf.WriteString(l.CurrencyGroupSeparator)
-		}
-		wholeBuf.WriteString(groups[len(groups)-i-1])
-	}
-
-	// Which pattern do we need?
-	// Notice that the minus sign is part of the pattern
-	var pattern string
-	if m.Sign() > 0 {
-		pattern = l.CurrencyPositivePattern
-	} else {
-		pattern = l.CurrencyNegativePattern
-	}
-
-	// Split into whole and decimal and build formatted number
-	var formatted string
-	parts := strings.SplitN(unformatted, ".", 2)
-	if len(parts) > 1 {
-		formatted = fmt.Sprintf("%s%s%s", wholeBuf.String(), l.CurrencyDecimalSeparator, parts[1])
-	} else {
-		formatted = wholeBuf.String()
-	}
-	output := strings.Replace(pattern, "$", symbol, -1)
-	output = strings.Replace(output, "n", formatted, -1)
-
-	return output
+	f := GetFormatter(loc, m.C)
+	return f.Format(m.Value())
 }
 
 func (m *Money) FormatNoSymbol(loc string) string {
-	ret := strings.TrimSpace(m.format(loc, ""))
+	f := GetFormatter(loc, m.C)
+	f.currencySymbol = ""
+	ret := strings.TrimSpace(f.Format(m.Value()))
 	return strings.Replace(ret, "- ", "-", -1) // remove any funny whitespace due to -ve pattern
 }
 
