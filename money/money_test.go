@@ -103,6 +103,36 @@ func TestMoneyStringer(t *testing.T) {
 		{&Money{-123456, "EUR"}, "-1234.56 EUR"},
 		{&Money{-1234567, "EUR"}, "-12345.67 EUR"},
 		{&Money{-1234567890, "EUR"}, "-12345678.90 EUR"},
+		{&Money{0, "GBP"}, "0.00 GBP"},
+		{&Money{1, "GBP"}, "0.01 GBP"},
+		{&Money{12, "GBP"}, "0.12 GBP"},
+		{&Money{123, "GBP"}, "1.23 GBP"},
+		{&Money{1234, "GBP"}, "12.34 GBP"},
+		{&Money{123456, "GBP"}, "1234.56 GBP"},
+		{&Money{1234567, "GBP"}, "12345.67 GBP"},
+		{&Money{1234567890, "GBP"}, "12345678.90 GBP"},
+		{&Money{-1, "GBP"}, "-0.01 GBP"},
+		{&Money{-12, "GBP"}, "-0.12 GBP"},
+		{&Money{-123, "GBP"}, "-1.23 GBP"},
+		{&Money{-1234, "GBP"}, "-12.34 GBP"},
+		{&Money{-123456, "GBP"}, "-1234.56 GBP"},
+		{&Money{-1234567, "GBP"}, "-12345.67 GBP"},
+		{&Money{-1234567890, "GBP"}, "-12345678.90 GBP"},
+		{&Money{0, "JPY"}, "0 JPY"},
+		{&Money{1, "JPY"}, "1 JPY"},
+		{&Money{12, "JPY"}, "12 JPY"},
+		{&Money{123, "JPY"}, "123 JPY"},
+		{&Money{1234, "JPY"}, "1234 JPY"},
+		{&Money{123456, "JPY"}, "123456 JPY"},
+		{&Money{1234567, "JPY"}, "1234567 JPY"},
+		{&Money{1234567890, "JPY"}, "1234567890 JPY"},
+		{&Money{-1, "JPY"}, "-1 JPY"},
+		{&Money{-12, "JPY"}, "-12 JPY"},
+		{&Money{-123, "JPY"}, "-123 JPY"},
+		{&Money{-1234, "JPY"}, "-1234 JPY"},
+		{&Money{-123456, "JPY"}, "-123456 JPY"},
+		{&Money{-1234567, "JPY"}, "-1234567 JPY"},
+		{&Money{-1234567890, "JPY"}, "-1234567890 JPY"},
 	}
 
 	for _, f := range fixtures {
@@ -256,6 +286,10 @@ func TestMoneyFormat(t *testing.T) {
 		{&Money{1234567890, "JPY"}, "de_CH", "¥ 1'234'567'890"},
 		{&Money{-1234567890, "JPY"}, "de_CH", "¥-1'234'567'890"},
 		{&Money{1234567890, "JPY"}, "en_GB", "¥1,234,567,890"},
+		{&Money{10, "JPY"}, "ja_JP", "¥10"},
+		{&Money{1200, "JPY"}, "ja_JP", "¥1,200"},
+		{&Money{10, "JPY"}, "en_JP", "10 JPY"},
+		{&Money{1200, "JPY"}, "en_JP", "1200 JPY"},
 		{&Money{1234567890, "SEK"}, "se_SE", "12.345.678,90 kr"},
 		{&Money{-1234567890, "SEK"}, "se_SE", "-12.345.678,90 kr"},
 		{&Money{1234567890, "SEK"}, "de_DE", "12.345.678,90 kr"},
@@ -272,7 +306,7 @@ func TestMoneyFormat(t *testing.T) {
 	for _, f := range fixtures {
 		got := f.m.Format(f.locale)
 		if got != f.expected {
-			t.Errorf("expected %s, got %s (locale: %s)", f.expected, got, f.locale)
+			t.Errorf("expected %s, got %s (currency: %s, locale: %s)", f.expected, got, f.m.C, f.locale)
 		}
 	}
 }
@@ -435,7 +469,7 @@ func TestMoneyFormatNoSymbol(t *testing.T) {
 	for _, f := range fixtures {
 		got := f.m.FormatNoSymbol(f.locale)
 		if got != f.expected {
-			t.Errorf("expected '%s', got '%s' (locale: %s)", f.expected, got, f.locale)
+			t.Errorf("expected '%s', got '%s' (currency: %s locale: %s)", f.expected, got, f.m.C, f.locale)
 		}
 	}
 }
