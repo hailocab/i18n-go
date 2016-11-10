@@ -6,10 +6,12 @@ package money
 
 import (
 	"errors"
+	"math"
+	"strconv"
 	"strings"
 
-	"github.com/hailocab/i18n-go/currency"
-	"github.com/hailocab/i18n-go/locale"
+	"github.com/River-Island/i18n-go/currency"
+	"github.com/River-Island/i18n-go/locale"
 )
 
 type Money struct {
@@ -21,6 +23,8 @@ var (
 	ErrMoneyOverflow              = errors.New("i18n: money overflow")
 	ErrMoneyDivideByZero          = errors.New("i18n: money division by zero")
 	ErrMoneyDecimalPlacesTooLarge = errors.New("i18n: money decimal places too large")
+	ErrMoneyNotFloat              = errors.New("i18n: money string type cannot be converted to float64")
+	ErrCurrencyNotFound           = errors.New("i18n: currency not found")
 
 	Guardi int     = 100
 	Guard  int64   = int64(Guardi)
@@ -50,6 +54,21 @@ func newDecimal(d int) int {
 		}
 	}
 	return newDec
+}
+
+// NewFromMainUnit returns a new Money based on the main unit representation
+// e.g NewFromMainUnit(12.00, "GBP") will return Money{M: 1200, C: "GBP"}
+func NewFromMainUnit(m string, c string) *Money {
+	cur := currency.Get(c)
+	if cur != nil {
+		mf, err := strconv.ParseFloat(strings.Replace(m, ",", "", 1), 64)
+		if err != nil {
+			panic(ErrMoneyNotFloat)
+		}
+		subunits := int64(mf * math.Pow(10, float64(cur.DecimalDigits)))
+		return &Money{subunits, c}
+	}
+	panic(ErrCurrencyNotFound)
 }
 
 // New returns a new Money that can be used for money arithmetic.

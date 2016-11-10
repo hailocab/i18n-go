@@ -2,10 +2,11 @@ package generator
 
 import (
 	"fmt"
-	"github.com/hailocab/i18n-go/currency"
-	"github.com/hailocab/i18n-go/locale"
 	"os"
 	"sort"
+
+	"github.com/River-Island/i18n-go/currency"
+	"github.com/River-Island/i18n-go/locale"
 )
 
 func Currency() {

@@ -6,8 +6,8 @@ import (
 	"math"
 	"strings"
 
-	"github.com/hailocab/i18n-go/currency"
-	"github.com/hailocab/i18n-go/locale"
+	"github.com/River-Island/i18n-go/currency"
+	"github.com/River-Island/i18n-go/locale"
 )
 
 const (
