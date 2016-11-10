@@ -2,6 +2,7 @@ package money
 
 import (
 	"fmt"
+	"reflect"
 	"testing"
 )
 
@@ -470,6 +471,32 @@ func TestMoneyFormatNoSymbol(t *testing.T) {
 		got := f.m.FormatNoSymbol(f.locale)
 		if got != f.expected {
 			t.Errorf("expected '%s', got '%s' (currency: %s locale: %s)", f.expected, got, f.m.C, f.locale)
+		}
+	}
+}
+
+func TestMoneyFromMainUnit(t *testing.T) {
+	var fixtures = []struct {
+		m        string
+		c        string
+		expected *Money
+	}{
+		{"1", "GBP", &Money{100, "GBP"}},
+		{"0.01", "GBP", &Money{1, "GBP"}},
+		{"0.50", "GBP", &Money{50, "GBP"}},
+		{"12.00", "GBP", &Money{1200, "GBP"}},
+		{"120.99", "GBP", &Money{12099, "GBP"}},
+		{"1.501", "GBP", &Money{150, "GBP"}},
+
+		{"1.501", "BHD", &Money{1501, "BHD"}},
+		{"1", "BND", &Money{1, "BND"}},
+
+		{"1,500", "SEK", &Money{150000, "SEK"}},
+	}
+	for _, f := range fixtures {
+		got := NewFromMainUnit(f.m, f.c)
+		if !reflect.DeepEqual(got, f.expected) {
+			t.Errorf("expected '%s', got '%s' (amount: %d currency: %s)", f.expected, got, got.M, got.C)
 		}
 	}
 }
